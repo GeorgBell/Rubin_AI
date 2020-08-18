@@ -1,22 +1,22 @@
 ### File description
-# File contains ...
-# ...
-# ...
+# File contains class and methods to send gcode
+# via pyserial interface
 
 ### Packages import
 import time
 import serial
 
 ### Help functions
+# NEEDS REFACTORING!!!
 def detect_device():
 	"""
 	Function gets device name to establish
 	serial connection btwn PC and CNC
 	"""
-	# Hack
 	device_name = input("Enter device name in form 'USB0': ")
 	return device_name
 
+# NEEDS REFACTORING!!!
 def create_gfile():
 	"""
 	Function creates g-code script for scanning
@@ -33,7 +33,8 @@ class CncDrive():
 	"""
 	def __init__(self, device_name):
 		"""
-		Class constructor ...
+		Class constructor starts connection via pyserial and
+        sends starting gcode
 		"""
 		# open connection
 		self.cnc = serial.Serial(port = f"/dev/tty{device_name}", baudrate ="115200")
@@ -52,7 +53,8 @@ class CncDrive():
 		if self.cnc.readline().strip() == b"ok":
 			print("Success")
 
-	def set_position(self):
+	# NEEDS REFACTORING!!!
+    def set_position(self):
 		"""
 		Function sets base position
 		"""
@@ -60,7 +62,8 @@ class CncDrive():
 		if self.cnc.readline().strip() == b"ok":
 			print("Success")
 
-	def get_to_position(self):
+	# NEEDS REFACTORING!!!
+    def get_to_position(self):
 		"""
 		Function sets base position
 		"""
@@ -68,7 +71,8 @@ class CncDrive():
 		if self.cnc.readline().strip() == b"ok":
 			print("Success")
 
-	def get_location(self):
+	# NEEDS REFACTORING!!!
+    def get_location(self):
 		"""
 		Function gets coordinates of current position
 		"""
@@ -76,34 +80,36 @@ class CncDrive():
 		coord = self.cnc.readline()
 		return(str.decode(coord))
 
-	def x_step(self, dist, speed):#!!! SET DEFAULT VALUES !!!
+	def x_step(self, dist=5, speed=100):
 		"""
 		Function performs movement along X-axis
 		"""
 		command = str.encode(f"G01 X{dist} F{speed}\n")
 		self.cnc.write(command)
 
-	def y_step(self, dist, speed):#!!! SET DEFAULT VALUES !!!
+	def y_step(self, dist=5, speed=100):
 		"""
 		Function performs movement along Y-axis
 		"""
 		command = str.encode(f"G01 Y{dist} F{speed}\n")
 		self.cnc.write(command)
 
-	def z_step(self, dist, speed):#!!! SET DEFAULT VALUES !!!
+	def z_step(self, dist=5, speed=100):
 		"""
 		Function performs movement along Z-axis
 		"""
 		command = str.encode(f"G01 Z{dist} F{speed}\n")
 		self.cnc.write(command)
 
-	def perform_gfile(self, gfile):
+	# NEEDS REFACTORING!!!
+    def perform_gfile(self, gfile):
 		"""
 		Function performs prerecorded g-code script
 		"""
 		pass
 
 
+# NEEDS REFACTORING!!!
 class CncSetup():
 	"""
 	Class contains:
@@ -119,6 +125,7 @@ class CncSetup():
 
 
 if __name__ == "__main__":
+    # Testing motors.py module
 	print("Test 1: GRBL connection")
 	device_name = detect_device()
 	drive = CncDrive(device_name)
