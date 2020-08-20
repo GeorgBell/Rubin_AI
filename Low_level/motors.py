@@ -13,7 +13,7 @@ def detect_device():
 	Function gets device name to establish
 	serial connection btwn PC and CNC
 	"""
-	device_name = input("Enter device name in form 'USB0': ")
+	device_name = input("Enter device name in form '/dev/ttyUSB0': ")
 	return device_name
 
 # NEEDS REFACTORING!!!
@@ -37,7 +37,7 @@ class CncDrive():
         sends starting gcode
 		"""
 		# open connection
-		self.cnc = serial.Serial(port = f"/dev/tty{device_name}", baudrate ="115200")
+		self.cnc = serial.Serial(port = f"{device_name}", baudrate ="115200")
 		# setup
 		self.cnc.write(b"\r\n\r\n")
 		time.sleep(2)
