@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
     input("Test 3: Init autofocus")
     # ??????
-    autofoc = Autofocus(MotorObj=drive, CameraObj=micro_cam, focus_range=100)
+    autofoc = Autofocus(MotorObj=drive, CameraObj=micro_cam, focus_range=10)
 
     input("Test 4: Perform autofocus")
     autofoc.autofocus_local()

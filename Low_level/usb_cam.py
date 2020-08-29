@@ -31,13 +31,25 @@ class MicroCamera():
     Class for microscopic camera
     """
 
-    def __init__(self, device_id=0, resolution=(1280,720), framerate=25):
+    def __init__(self, device_id=0, resolution=(1280,720), framerate=25, type="usb"):
         """
         Method initializes camera, sets up its parameters
         """
-        self.camera_open(device_id)
-        self.camera_setup(resolution, framerate)
+        if type == "usb":
+            self.camera_open(device_id)
+            self.camera_setup(resolution, framerate)
+        elif type == "pi":
+            self.pi_camera_open()
         self.record = None
+
+    def pi_camera_open(self):
+        """
+        Method attaches, sets up and check pi camera
+        """
+        GSTREAMER_PIPELINE = 'nvarguscamerasrc ! video/x-raw(memory:NVMM), width=3280, height=2464, format=(string)NV12, framerate=21/1 ! nvvidconv flip-method=0 ! video/x-raw, width=960, height=616, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink wait-on-eos=false max-buffers=1 drop=True'
+        self.cam = cv2.VideoCapture(GSTREAMER_PIPELINE, cv2.CAP_GSTREAMER)
+        if not (self.cap.isOpened()):
+            print("Could not open video device")
 
 
     def camera_open(self, device_id):
