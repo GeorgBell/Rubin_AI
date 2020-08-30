@@ -31,7 +31,7 @@ class KivyCamera(Image):
 class CamApp(App):
     def build(self):
 
-        self.capture = MicroCamera(device_id=0)
+        self.capture = MicroCamera(device_id=1)
         self.box = BoxLayout(orientation='horizontal', spacing=20)
         self.my_camera = KivyCamera(capture=self.capture)
         self.btn_capture = Button(text='Capture', on_press=partial(self.capture.capture_single_image, *[1,2,3]), size_hint=(1,1))
@@ -43,7 +43,9 @@ class CamApp(App):
     def on_stop(self):
         #without this, app will not exit even if the window is closed
         self.capture.stream_stop()
+        print("Stream stopped")
         self.capture.camera_close()
+        print("Camera closed")
 
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ class MicroCamera():
     Class for microscopic camera
     """
 
-    def __init__(self, device_id=0, resolution=(1280,720), framerate=25, type="usb"):
+    def __init__(self, device_id=1, resolution=(1280,720), framerate=25, type="usb"):
         """
         Method initializes camera, sets up its parameters
         """
@@ -39,16 +39,16 @@ class MicroCamera():
             self.camera_open(device_id)
             self.camera_setup(resolution, framerate)
         elif type == "pi":
-            self.pi_camera_open()
+            self.pi_camera_open(resolution, framerate)
         self.record = None
 
-    def pi_camera_open(self):
+    def pi_camera_open(self, resolution, framerate):
         """
         Method attaches, sets up and check pi camera
         """
-        GSTREAMER_PIPELINE = 'nvarguscamerasrc ! video/x-raw(memory:NVMM), width=3280, height=2464, format=(string)NV12, framerate=21/1 ! nvvidconv flip-method=0 ! video/x-raw, width=960, height=616, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink wait-on-eos=false max-buffers=1 drop=True'
+        GSTREAMER_PIPELINE = 'nvarguscamerasrc ! video/x-raw(memory:NVMM), width=1280, height=720, format=(string)NV12, framerate=25 ! nvvidconv flip-method=0 ! video/x-raw, width=1280, height=720, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink wait-on-eos=false max-buffers=1 drop=True'
         self.cam = cv2.VideoCapture(GSTREAMER_PIPELINE, cv2.CAP_GSTREAMER)
-        if not (self.cap.isOpened()):
+        if not (self.cam.isOpened()):
             print("Could not open video device")
 
 
@@ -67,9 +67,9 @@ class MicroCamera():
         Method initializes video recorder and sets record flag
         """
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        fourcc = cv2.VideoWriter_fourcc('M',"J","P","G")
+        fourcc = cv2.VideoWriter_fourcc('X',"V","I","D")
         self.out = cv2.VideoWriter(f'Captured/Sample_{sample_n}/Video/{timestr}.avi',
-                                   fourcc, framerate, resolution)
+                                   fourcc, float(framerate), resolution, True)
         self.record = True
 
 
@@ -78,7 +78,7 @@ class MicroCamera():
         Method changes record flag and releases recorder
         """
         self.record = False
-        self.out.release()
+        #self.out.release()
      
 
     def camera_setup(self, resolution, framerate):
@@ -95,6 +95,7 @@ class MicroCamera():
         Method releases camera resource
         """
         self.cam.release()
+        self.out.release()
 
 
     def stream_start(self):
@@ -165,7 +166,7 @@ if __name__ == "__main__":
     create_data_directory(1)
 
     input("Open camera")
-    micro_cam = MicroCamera(device_id=0)
+    micro_cam = MicroCamera(device_id=1)
     micro_cam.stream_start()
 
 
