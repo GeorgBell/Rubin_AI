@@ -2,10 +2,12 @@
 # The file contains autofocusing algorithm
 
 ### Packages import
-import cameras
-import motors
+import sys
+sys.path.append('../')
+import Low_level.cameras
+import Low_level.motors
 
-from sharpness_calculation import variance_sharpness
+from Applied_level.sharpness_calculation import variance_sharpness
 from math import sqrt
 
 ### Class of autofocus algorithm
@@ -50,7 +52,8 @@ class Autofocus:
         return b - (self.fibonacci_num(f_range - i - 1) /
             self.fibonacci_num(f_range - i + 1)) * (b - a)
 
-   def move_capture_calculate(self, distance):
+    def move_capture_calculate(self, distance):
+
         """
         Function performs common operations
         ! Invert control of movements !
@@ -170,7 +173,7 @@ if __name__ == "__main__":
     drive = motors.CncDrive(device_name)
 
     input("Test 2: Open camera")
-    micro_cam = usb_camera.MicroCamera(device_id=0)
+    micro_cam = cameras.MicroCamera(device_id=0)
     micro_cam.stream_start()
 
     input("Test 3: Init autofocus")

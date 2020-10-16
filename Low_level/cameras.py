@@ -7,6 +7,8 @@ import cv2
 import time
 from threading import Thread
 from os import makedirs, path
+from rtcbot import CVCamera
+from functools import partial
 
 ### Auxiliary functions
 def create_data_directory(sample_n):
@@ -26,7 +28,7 @@ def create_data_directory(sample_n):
     return {"scan":scan_path, "single":single_path, "video":video_path}
 
 ### Main class section
-class MicroCamera():
+class MicroCamera(CVCamera):
     """
     Class for microscopic camera
     """
@@ -35,12 +37,21 @@ class MicroCamera():
         """
         Method initializes camera, sets up its parameters
         """
+        frame_remote = None
         if type == "usb":
             self.camera_open(device_id)
             self.camera_setup(resolution, framerate)
         elif type == "pi":
             self.pi_camera_open(resolution, framerate)
+        elif type == "remote_usb":
+            super().__init__(width=320, height=240, cameranumber=0, fps=30, 
+                             preprocessframe=self.get_remote_frame, 
+                             loop=None)
         self.record = None
+
+    def get_remote_frame(self, frame_remote):
+        self.frame = frame_remote
+        return frame_remote
 
     def pi_camera_open(self, resolution, framerate):
         """

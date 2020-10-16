@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block body %}
+
+    <div class="container">
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to the Real-time access page of Rubin AI project!</h1>
+            <hr class="my-4">
+            <h2>Please select the active remote microscope:</h2>
+        </div>
+    </div>
+
+    <div class="container">
+        <form method="POST" action="{{ url('index_p') }}">
+            <div class="form-group">
+                <select class="form-control" size=10 name="selected_device" required>
+                    {% for item in devices %}
+                        <option>{{item}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-info" id="refreshBtn" onClick="window.location.reload();">Refresh</button>
+            <button type="submit" class="btn btn-primary">Connect</button>
+        </form>
+    </div>
+
+
+{% endblock %}

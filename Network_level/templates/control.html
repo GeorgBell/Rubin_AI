@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block body %}
+    <script src="/rtcbot.js"></script>
+    <script src="http://code.jquery.com/jquery-2.0.2.min.js"></script>
+
+    <!-- Popup window for sample number -->
+    <div class="hover_bkgr_fricc">
+        <span class="helper"></span>
+        <div>
+            <form>
+                <div class="form-group">
+                    <input class="form-control" type="text" placeholder="Please enter sample number" id="sample_number" name="sample_number">
+                </div>
+                <button type='button' class="btn btn-primary" id="sample_btn" onclick="get_value()">Submit</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Jumbotron -->
+    <div class="container">
+        <div class="jumbotron">
+            <h2 class="display-4">Real-time access to: {{device}}</h2>
+            <hr class="my-4">
+            <h2>Microsample number: <span id="show_sample"></span></h2>
+        </div>
+    </div>
+
+
+    <!-- Container -->
+    <div class="container">
+        <div class="row">
+
+            <!-- Control container -->
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                <div class="row">
+                    <div class="col-lg-4 col-sm-4">
+                    </div>
+
+                    <div class="col-lg-4 col-sm-4 align-self-center">
+                        <input type="image" class="ctrl_btn center" id="y_forward" src="/static/y_forward.png">
+                    </div>
+
+                    <div class="col-lg-4 col-sm-4 align-self-center">
+                        <input type="image" class="ctrl_btn center" id="z_up" src="/static/z_up.png">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-4 col-sm-4">
+                        <input type="image" class="ctrl_btn" id="x_left" src="/static/x_left.png" style="width: 100%">
+                    </div>
+
+                    <div class="col-lg-4 col-sm-4 align-self-center">
+                        <a id="a_snapshot" href="#" download="#"><input type="image" class="ctrl_btn center" id="snapshot" src="/static/snapshot.png"></a>
+                        
+                    </div>
+
+                    <div class="col-lg-4 col-sm-4">
+                        <input type="image" class="ctrl_btn" id="x_right" src="/static/x_right.png" style="width: 100%">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-4 col-sm-4">
+                    </div>
+
+                    <div class="col-lg-4 col-sm-4">
+                        <input type="image" class="ctrl_btn center" id="y_backward" src="/static/y_backward.png">
+                    </div>
+
+                    <div class="col-lg-4 col-sm-4 align-self-center">
+                        <input type="image" class="ctrl_btn center" id="z_down" src="/static/z_down.png">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video container -->
+            <div class="col-lg-6 col-md-6 col-sm-">
+                <video autoplay playsinline controls style="width: 100%" id="video_stream"></video> <audio autoplay></audio>
+            </div>
+
+            <canvas id="canvas" style="display: none"></canvas>
+
+        </div>
+
+        <div class="row">
+            <div class="col-lg-2 col-sm-2 snapshot">
+                <a  href="{{ url('index_g') }}">
+                    <input type="image" class="ctrl_btn" id="exit" src="/static/exit.png" style="width: 75%">
+                </a>
+            </div>
+
+            <div class="col-lg-2 col-sm-2">
+            </div>
+
+            <div class="col-lg-2 col-sm-2">
+            </div>
+
+            <div class="col-lg-2 col-sm-2">
+                <button type="button" class="btn btn-warning btn-lg btn-block" id="autofocus">Autofocus</button>
+            </div>
+
+            <div class="col-lg-2 col-sm-2">
+                <button type="button" class="btn btn-warning btn-lg btn-block" id="scan">Scan</button>
+            </div>
+
+            <div class="col-lg-2 col-sm-2">
+                <button type="button" class="btn btn-warning btn-lg btn-block" id="new_sample">New sample</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Popup screen logic
+        $(window).load(function () {
+            $('.hover_bkgr_fricc').show();
+            });
+
+        function takeSnapshot(sampleValue){
+            var hidden_canvas = document.querySelector('#canvas'),
+                video = document.querySelector('#video_stream'),
+
+                // Get the exact size of the video element
+                width = video.videoWidth,
+                height = video.videoHeight,
+
+                // Context object for working with the canvas
+                context = hidden_canvas.getContext('2d');
+
+            // Set the canvas to the same dimensions as the video
+            hidden_canvas.width = width;
+            hidden_canvas.height = height;
+
+            // Draw a copy of the current frame from the video on the canvas
+            context.drawImage(video, 0, 0, width, height);
+
+            // Get an image dataURL from the canvas
+            var imageDataURL = hidden_canvas.toDataURL('image/png');
+
+            // Set the href attribute of the download button
+            document.querySelector('#a_snapshot').download = sampleValue.concat(".png");
+            document.querySelector('#a_snapshot').href = imageDataURL;
+        }
+
+        // RTC connection logic
+        var conn = new rtcbot.RTCConnection();
+
+        conn.video.subscribe(function(stream) {
+            document.querySelector("video").srcObject = stream;
+            });
+
+        async function connect() {
+            let offer = await conn.getLocalDescription();                  
+            let data =JSON.stringify({jsOffer : offer, device : "{{device}}"});
+
+            // POST the information to /connect
+            let response = await fetch("/connect", {
+                method: "POST",
+                cache: "no-cache",
+                body: data,
+                });
+
+            await conn.setRemoteDescription(await response.json());
+            console.log("Ready!");
+            }
+
+        connect();
+
+        // Get sample number
+        var sampleValue = 0
+        function get_value() {
+            sampleValue = document.getElementById("sample_number").value;
+            if (sampleValue){
+                conn.put_nowait({ command: "sample_number", value: sampleValue });
+                $('.hover_bkgr_fricc').hide();
+                document.getElementById("show_sample").innerHTML = sampleValue; 
+            }
+            else {
+                alert("Please enter sample number!")
+            }
+            
+            };
+
+
+        var btn_y_forward = document.querySelector("#y_forward");
+        btn_y_forward.onclick = function() {
+            conn.put_nowait({ command: "forward" });
+            };
+
+        var btn_y_backward = document.querySelector("#y_backward");
+        btn_y_backward.onclick = function() {
+            conn.put_nowait({ command: "backward" });
+            };
+
+        var btn_x_left = document.querySelector("#x_left");
+        btn_x_left.onclick = function() {
+            conn.put_nowait({ command: "left" });
+            };
+
+        var btn_x_right = document.querySelector("#x_right");
+        btn_x_right.onclick = function() {
+            conn.put_nowait({ command: "right" });
+            };
+
+        var btn_z_down = document.querySelector("#z_down");
+        btn_z_down.onclick = function() {
+            conn.put_nowait({ command: "down" });
+            };
+
+        var btn_z_up = document.querySelector("#z_up");
+        btn_z_up.onclick = function() {
+            conn.put_nowait({ command: "up" });
+            };
+
+
+        var btn_snapshot = document.querySelector("#a_snapshot");
+        btn_snapshot.onclick = function() {
+            conn.put_nowait({ command: "snapshot" });
+            takeSnapshot(sampleValue)
+            };
+
+        var btn_autofocus = document.querySelector("#autofocus");
+        btn_autofocus.onclick = function() {
+            conn.put_nowait({ command: "autofocus" });
+            };
+
+        var btn_scan = document.querySelector("#scan");
+        btn_scan.onclick = function() {
+            conn.put_nowait({ command: "scan" });
+            };
+
+        var btn_sample = document.querySelector("#new_sample");
+        btn_sample.onclick = function() {
+            $('.hover_bkgr_fricc').show();
+            conn.put_nowait({ command: "set_sample"});
+            };
+
+        window.onbeforeunload = function(){
+            conn.put_nowait({ command: "exit" });
+            return false;
+            }
+
+    </script>
+{% endblock %}
