@@ -13,8 +13,9 @@ def detect_device():
     Function gets device name to establish
     serial connection btwn PC and CNC
     """
-    device_name = input("Enter device name in form '/dev/ttyUSB0': ")
-    return device_name
+    with open('../device_config.txt') as json_file:
+        motor_name = json.load(json_file)["motor_name"]
+    return motor_name
 
 # NEEDS REFACTORING!!!
 def create_gfile():
@@ -39,13 +40,21 @@ class CncDrive():
         # open connection
         self.cnc = serial.Serial(port = f"{device_name}", baudrate ="115200")
         # setup
-        self.cnc.write(b"\r\n\r\n")
+        #self.cnc.write(b"\r\n\r\n")
         time.sleep(2)
         self.cnc.reset_output_buffer()
         # all required G-code commands
         self.cnc.write(b"G91\n")
 
     def get_home(self):
+        """
+        Function returns stage to the home position
+        """
+        self.cnc.write(b"$H\n")
+        if self.cnc.readline().strip() == b"ok":
+            print("Success")
+
+    def kill_lock(self):
         """
         Function returns stage to the home position
         """
@@ -86,6 +95,12 @@ class CncDrive():
         """
         command = str.encode(f"G01 X{dist} F{speed}\n")
         self.cnc.write(command)
+        coord = self.cnc.readline()
+        print(coord)
+        self.kill_lock()
+        coord = self.cnc.readline()
+        print(coord)
+        self.cnc.write(b"G91\n")
 
     def y_step(self, dist=5, speed=100):
         """
@@ -93,6 +108,12 @@ class CncDrive():
         """
         command = str.encode(f"G01 Y{dist} F{speed}\n")
         self.cnc.write(command)
+        coord = self.cnc.readline()
+        print(coord)
+        self.kill_lock()
+        coord = self.cnc.readline()
+        print(coord)
+        self.cnc.write(b"G91\n")
 
     def z_step(self, dist=5, speed=100):
         """
@@ -100,6 +121,10 @@ class CncDrive():
         """
         command = str.encode(f"G01 Z{dist} F{speed}\n")
         self.cnc.write(command)
+        coord = self.cnc.readline()
+        coord = self.cnc.readline()
+        print(coord)
+        self.cnc.write(b"G91\n")
 
     # NEEDS REFACTORING!!!
     def perform_gfile(self, gfile):
@@ -107,6 +132,10 @@ class CncDrive():
         Function performs prerecorded g-code script
         """
         pass
+
+    def read_gcode(self):
+        cnc_info = self.cnc.readline()
+        print(cnc_info)
 
 
 # NEEDS REFACTORING!!!
@@ -124,19 +153,25 @@ class CncSetup():
         pass
 
 
+
 if __name__ == "__main__":
     # Testing motors.py module
     print("Test 1: GRBL connection")
     device_name = detect_device()
     drive = CncDrive(device_name)
 
-    input("Press to continue...")
-    print("Test 2: Get to the home position")
-    drive.get_home()
+    input("Press to read...")
+    drive.read_gcode()
 
     input("Press to continue...")
-    print("Test 3: Set position to return")
-    drive.set_position()
+    print("Test 2: Killing lock")
+    drive.kill_lock()
+
+    input("Press to continue...")
+    print("Test 4.3: Perform Z movement")
+    dist = int(input("Enter distance "))
+    speed = int(input("Enter speed "))
+    drive.z_step(dist, speed)
 
     input("Press to continue...")
     print("Test 4.3: Perform Z movement")
@@ -155,12 +190,38 @@ if __name__ == "__main__":
     dist = int(input("Enter distance"))
     speed = int(input("Enter speed"))
     drive.y_step(dist, speed)
-   
-    input("Press to continue...")
-    print("Test 5: Get current location")
-    location = drive.get_location()
-    print(location)
 
-    input("Press to continue...")
-    print("Test 6: Get to the position")
-    drive.get_to_position()
+    # input("Press to continue...")
+    # print("Test 2: Get to the home position")
+    # drive.get_home()
+
+    # input("Press to continue...")
+    # print("Test 3: Set position to return")
+    # drive.set_position()
+
+    # input("Press to continue...")
+    # print("Test 4.3: Perform Z movement")
+    # dist = int(input("Enter distance "))
+    # speed = int(input("Enter speed "))
+    # drive.z_step(dist, speed)
+
+    # input("Press to continue...")
+    # print("Test 4.1: Perform X movement")
+    # dist = int(input("Enter distance"))
+    # speed = int(input("Enter speed"))
+    # drive.x_step(dist, speed)
+
+    # input("Press to continue...")
+    # print("Test 4.2: Perform Y movement")
+    # dist = int(input("Enter distance"))
+    # speed = int(input("Enter speed"))
+    # drive.y_step(dist, speed)
+   
+    # input("Press to continue...")
+    # print("Test 5: Get current location")
+    # location = drive.get_location()
+    # print(location)
+
+    # input("Press to continue...")
+    # print("Test 6: Get to the position")
+    # drive.get_to_position()

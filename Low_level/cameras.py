@@ -33,7 +33,7 @@ class MicroCamera(CVCamera):
     Class for microscopic camera
     """
 
-    def __init__(self, device_id=1, resolution=(1280,720), framerate=25, type="usb"):
+    def __init__(self, device_id=0, resolution=(1280,720), framerate=25, type="usb"):
         """
         Method initializes camera, sets up its parameters
         """

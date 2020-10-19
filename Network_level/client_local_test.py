@@ -43,10 +43,10 @@ async def connect():
     and uses it to send and receive info to establish webRTC connection.
     """
     # Read configuration to get device name
-    with open('device_config.txt') as json_file:
+    with open('../device_config.txt') as json_file:
         device_name = json.load(json_file)["device_name"]
     # Establish web socket connection and send device name
-    ws = Websocket("http://178.154.227.116:8080/ws") # !!! CHANGE FOR REAL IP
+    ws = Websocket("http://localhost:8080/ws") # !!! CHANGE FOR REAL IP
     ws.put_nowait(device_name)
 
     # Establish WebRTC connection
